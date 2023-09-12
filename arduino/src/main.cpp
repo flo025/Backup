@@ -36,7 +36,7 @@ void loop() {
 
   double sound = analogRead(0);
   sendData("noise", sound);
-  
+
   delay(1000);
 }
 

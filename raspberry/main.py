@@ -1,70 +1,75 @@
-import serial, time, re, random, string
-import paho.mqtt.client as mqttc
+import serial, time, re, os, mqtt_service, asyncio, camera_service
+from dotenv import load_dotenv
 
-def manageSerialHandshake(data, arduino):
+ev=None
+
+
+def manage_serial_handshake(data, arduino):
     outcome = ("serial-handshake" + data).encode()
     print("Incoming handshake. Validating back [" + data + "]")
     arduino.write(outcome)
 
 
-def manageSerialData(topic, data, arduino, mqttClient):
+def manage_serial_data(topic, data, arduino):
     print("Data received : [" + topic + ", " + data + "]")
     arduino.write("serial-data=OK".encode())
-    mqttClient.publish("room-data/TEST/" + topic, data)
+    mqtt_service.send_data(("room-data", "TEST-ROOM", topic), data)
 
-def manageSerialDebug(payload, arduino, mqttClient):
+def manage_serial_debug(payload, arduino):
     print("Debug received : [" + payload + "]")
-    mqttClient.publish("room-data/TEST/debug", payload)
+    send_mqtt_debug(payload)
 
-def manageIncomingMessage(message, arduino, mqttClient):
+def send_mqtt_debug(payload):
+    mqtt_service.send_data(("room-data", "TEST-ROOM", "debug"), payload)
+
+def manage_serial_income(message, arduino, mqttClient):
     matched = re.findAll("([A-z-]*)(?:/)?([A-z-]*)?=([A-z0-9]", message)
     (topic, subtopic, data) = matched[0]
 
-    if topic == "serial-handshake": manageSerialHandshake(data, arduino)
-    elif topic == "serial-data": manageSerialData(subtopic, data, arduino, mqttClient)
-    elif topic == "serial-debug": manageSerialDebug(data, arduino, mqttClient)
+    if topic == "serial-handshake": manage_serial_handshake(data, arduino)
+    elif topic == "serial-data": manage_serial_data(subtopic, data, arduino, mqttClient)
+    elif topic == "serial-debug": manage_serial_debug(data, arduino, mqttClient)
 
-def mqttOnConnect(mqttc, obj, flags, rc):
-    print("rc: " + str(rc))
+async def camera_capture():
+    byte_data=await camera_service.get_base64_capture()
+    mqtt_service.send_data(("room-data", "TEST-ROOM", "image"), byte_data)
 
-def mqttOnPublish(mqttc, obj, mid):
-    print("mid: " + str(mid))
+async def main():
+    load_dotenv()
+    ev = dict(os.environ)
 
-def mqttOnSubscribe(mqttc, obj, mid, granted_qos):
-    print("Subscribed: " + str(mid) + " " + str(granted_qos))
+    await camera_service.init()
 
-def connectToMqttBroker():
-    random_cid = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
-    mqtt = mqttc.Client(("rpiuhapj-" + random_cid), True, reconnect_on_failure=True, userdata=None)
-    mqtt.on_connect=mqttOnConnect
-    mqtt.on_publish=mqttOnPublish
-    mqtt.on_subscribe=mqttOnSubscribe
-    
-    mqtt.tls_insecure_set(True)
-    mqtt.connect("mqtt.freezlex.dev", 1883, 15)
+    await mqtt_service.init_client(mqtt_service.MqttClient("mqtt.freezlex.dev", "guest", "zK&hjVQhiPrwAu6F", 1883, True, True))
 
-    return mqtt
-
-if __name__ == '__main__':
-    mqttClient=connectToMqttBroker()
     connected=False
     loop=True
     arduino=None
+    time_buffer=time.time()
     while loop:
         try:
             if connected==False:
-                arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
+                arduino = await serial.Serial("/dev/ttyACM0", 9600, timeout=1)
                 time.sleep(0.1) # Wait 1s for serial to open
             connected = arduino.isOpen()
             if connected:
                 while arduino.inWaiting()==0: pass
                 if arduino.inWaiting()>0:
-                    income=arduino.readline()
-                    manageIncomingMessage(income.decode("utf-8"), arduinon, mqttClient)
+                    income=await arduino.readline()
+                    manage_serial_income(income.decode("utf-8"), arduino)
                     arduino.flushInput() # Remove data after reading
+
+            if time.time() - time_buffer > 5:
+                camera_capture()
+                time_buffer=time.time()
         except KeyboardInterrupt:
+            await send_mqtt_debug(f"KeyboardUnterrupt shuting down application.")
+            mqtt_service.disconnect_client()
             print("KeyboardInterrupt has been caught.")
             loop=False
-        except:
-            print("Arduino disconnected. Await 10s for it to be reconnected.")
+        except Exception as e:
+            send_mqtt_debug(f"Arduino disconnected, await 10s before new attempt.")
             time.sleep(10)
+
+if __name__ == '__main__':
+    asyncio.run(main())
