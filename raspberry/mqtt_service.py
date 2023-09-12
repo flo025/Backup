@@ -31,7 +31,7 @@ def init_client(service_client: MqttClient) -> mqtt.Client:
 
     return client
 
-def send_data(topics: tuple[str], data: str|float|int|bytes) -> bool:
+def send_data(topics: tuple[str], data) -> bool:
     try :
         if not client.is_connected():
             print(f"MQTT broker not connected. MQTT_DATA_NOT_SENT [{'/'.join(topics)}, {data}]")
