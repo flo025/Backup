@@ -2,7 +2,7 @@ import serial, time, re, os, mqtt_service, asyncio, camera_service, multiprocess
 from dotenv import load_dotenv
 
 ev=None
-
+room_uid="f62888bc-50db-4254-86cf-ec731c2fe4e9"
 
 def manage_serial_handshake(data, arduino):
     outcome = f"serial-handshake={data}".encode()
@@ -12,14 +12,14 @@ def manage_serial_handshake(data, arduino):
 
 def manage_serial_data(topic, data, arduino):
     arduino.write("serial-data=OK".encode())
-    mqtt_service.send_data(("room-data", "7c546cd9-4aa5-4ce9-b19e-b5029c87c49e", topic), data)
+    mqtt_service.send_data(("room-data", room_uid, topic), data)
 
 
 def manage_serial_debug(payload, arduino):
     send_mqtt_debug(payload)
 
 def send_mqtt_debug(payload):
-    mqtt_service.send_data(("room-data", "7c546cd9-4aa5-4ce9-b19e-b5029c87c49e", "debug"), payload)
+    mqtt_service.send_data(("room-data", room_uid, "debug"), payload)
 
 def manage_serial_income(message, arduino):
     matched = re.findall("([A-z-]*)(?:/)?([A-z-]*)?=([A-z0-9]*)", message)
@@ -31,7 +31,7 @@ def manage_serial_income(message, arduino):
 
 def camera_capture():
     byte_data=camera_service.get_base64_capture()
-    mqtt_service.send_data(("room-data", "7c546cd9-4aa5-4ce9-b19e-b5029c87c49e", "image"), byte_data)
+    mqtt_service.send_data(("room-data", room_uid, "image"), byte_data)
 
 def serial_listener():
     mqtt_service.client = mqtt_service.init_client(mqtt_service.MqttClient("mqtt.freezlex.dev", "guest", "zK&hjVQhiPrwAu6F", 1883, True, True))
