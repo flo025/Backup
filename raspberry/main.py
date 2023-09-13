@@ -65,7 +65,7 @@ def serial_listener():
             loop=False
         except Exception as e:
             send_mqtt_debug(f"{e}")
-            time.sleep(10)
+            time.sleep(60)
 
 def camera_capture_loop():
     mqtt_service.client = mqtt_service.init_client(mqtt_service.MqttClient("mqtt.freezlex.dev", "guest", "zK&hjVQhiPrwAu6F", 1883, True, True))

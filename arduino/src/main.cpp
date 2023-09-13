@@ -13,6 +13,8 @@ DallasTemperature sensors(&oneWire);
 
 int temperatureSensor = A0;
 
+int i = 0;
+
 int uartConnect(int, bool);
 
 bool sendData(String, double);
@@ -30,13 +32,15 @@ void setup() {
 }
 
 void loop() {
-  sensors.requestTemperatures();
-  double temp = sensors.getTempCByIndex(0);
-  sendData("temperature", temp);
-
+  i++;
   double sound = analogRead(0);
   sendData("noise", sound);
-
+  if(i==30){
+    sensors.requestTemperatures();
+    double temp = sensors.getTempCByIndex(0);
+    sendData("temperature", temp);
+    i=0;
+  }
   delay(1000);
 }
 
