@@ -1,6 +1,6 @@
 import cv2, base64, time
 
-camera=None
+camera: cv2.VideoCapture=None
 
 def init() :
     image_ratio = 16/9

@@ -21,12 +21,21 @@ class MqttClient:
 
 client: mqtt.Client=None
 
+def on_client_connected(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
+
+def on_client_connect_fail(client, userdata, flags, rc):
+    print(client, userdata, flags, rc)
+
 def init_client(service_client: MqttClient) -> mqtt.Client:
     client = mqtt.Client(client_id=f"iot-rpi-{''.join(random.choice(string.ascii_letters) for i in range(8))}")
     client.username_pw_set(service_client.user, service_client.password)
-    if service_client.use_ssl:
-        client.tls_set(certfile=None, keyfile=None, cert_reqs=ssl.CERT_NONE, tls_version=ssl.PROTOCOL_TLS)
+    client.tls_set(certfile=None, keyfile=None, cert_reqs=ssl.CERT_NONE, tls_version=ssl.PROTOCOL_TLS)
     client.connect(service_client.broker_url, service_client.port)
+
+    client.on_connect=on_client_connected
+    client.on_connect_fail=on_client_connect_fail
+
     client.loop_start()
 
     return client
