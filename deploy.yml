@@ -1,0 +1,110 @@
+---
+- name: Déploiement Ansible
+  hosts: all
+  become: yes  # Permet d'obtenir des privilèges administratifs (sudo)
+  vars:
+    user_mapping:
+      piadmin.local: master
+
+  tasks:
+    - name: Copie des fichiers vers les serveurs cibles
+      copy:
+        src: .
+        dest: iot
+        owner: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+        group: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+      register: copy_result
+
+    - name: Supprimer les fichiers exclus de la copie
+      file:
+        path: ~/iot/{{ item }}
+        state: absent
+      with_items:
+        - .git
+        - .idea
+        - .vscode
+        - .gitignore
+        - deploy.sh
+        - deploy.yml
+        - inventory.ini
+      when: copy_result is success
+      become_user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+
+    - name: Installation de Python 3
+      apt:
+        name: python3
+        state: present
+      become_user: root
+
+    - name: Installation de pip
+      apt:
+        name: python3-pip
+        state: present
+      become_user: root
+
+    - name: Installation des dépendances à partir du fichier requirements.txt
+      pip:
+        requirements: ~/iot/raspberry/requirements.txt
+      become_user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+
+    - name: Installation de python3-opencv
+      apt:
+        name: python3-opencv
+        state: present
+      become_user: root
+
+    - name: Suppression de toutes les tâches cron
+      cron:
+        name: "*"
+        state: absent
+      become_user: root
+
+    - name: Ajout de la tâche cron de l'envoie des données au redemarage
+      cron:
+        name: "send_sensor_data at startup"
+        special_time: reboot
+        user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+        job: "python3 ~/iot/raspberry/send_sensor_data.py >> ~/iot/raspberry/logs/log-$(date +'\\%Y-\\%m-\\%d').log 2>&1"
+
+    - name: Ajout de la tâche cron de l'envoie des données
+      cron:
+        name: "send_sensor_data"
+        minute: "30"
+        hour: "8"
+        weekday: "1-5"
+        user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+        job: "python3 ~/iot/raspberry/send_sensor_data.py >> ~/iot/raspberry/logs/log-$(date +'\\%Y-\\%m-\\%d').log 2>&1"
+
+
+    - name: Ajout de la tâche cron de l'envoie des images avant 9h
+      cron:
+        name: "send_images < 9h"
+        minute: "30-59"
+        hour: "8"
+        weekday: "1-5"
+        user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+        job: "python3 ~/iot/raspberry/send_image.py >> ~/iot/raspberry/logs/log-$(date +'\\%Y-\\%m-\\%d').log 2>&1"
+
+
+    - name: Ajout de la tâche cron de l'envoie des images entre 9h et 18h
+      cron:
+        name: "send_images 9h <= x < 18h"
+        minute: "*"
+        hour: "9-17"
+        weekday: "1-5"
+        user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+        job: "python3 ~/iot/raspberry/send_image.py >> ~/iot/raspberry/logs/log-$(date +'\\%Y-\\%m-\\%d').log 2>&1"
+
+
+    - name: Ajout de la tâche cron de l'envoie des images après 18h
+      cron:
+        name: "send_images >= 18h"
+        minute: "0-30"
+        hour: "18"
+        weekday: "1-5"
+        user: "{{ user_mapping[inventory_hostname] | default('pi') }}"
+        job: "python3 ~/iot/raspberry/send_image.py >> ~/iot/raspberry/logs/log-$(date +'\\%Y-\\%m-\\%d').log 2>&1"
+
+    - name: Reboot du serveur
+      reboot:
+      become: yes

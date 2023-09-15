@@ -33,7 +33,7 @@ try:
 
         data = arduino.on_message(arduino.serial.readline().decode('utf-8'))
         if data is not None:
-            client_service.send_date(data[0], data[1])
+            client_service.send_date(data[0], int(float(data[1])))
 
 except Exception as e:
     logging.error(e)

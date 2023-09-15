@@ -4,7 +4,7 @@ import time
 
 import cv2
 
-from param import CAMERA_IMAGE_RATIO, CAMERA_IMAGE_HEIGHT, CAMERA_WAIT
+from param import CAMERA_IMAGE_RATIO, CAMERA_IMAGE_HEIGHT, CAMERA_WAIT, CAMERA_BRIGHTNESS
 
 
 class CameraService:
@@ -13,9 +13,18 @@ class CameraService:
     def __init__(self):
         self.__camera.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_IMAGE_HEIGHT * CAMERA_IMAGE_RATIO)
         self.__camera.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_IMAGE_HEIGHT)
-        self.__camera.set(cv2.CAP_PROP_BRIGHTNESS, 80)
-        self.__camera.set(cv2.CAP_PROP_CONTRAST, 1)
-        self.__camera.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        # CAP_PROP_POS_MSEC
+        # CAP_PROP_MODE
+        self.__camera.set(cv2.CAP_PROP_BRIGHTNESS, CAMERA_BRIGHTNESS)
+        self.__camera.set(cv2.CAP_PROP_CONTRAST, 0.0)
+        self.__camera.set(cv2.CAP_PROP_SATURATION, 100.0)
+        self.__camera.set(cv2.CAP_PROP_ZOOM, 0.0)
+
+        logging.info(f"CAP_PROP_FRAME_WIDTH {self.__camera.get(cv2.CAP_PROP_FRAME_WIDTH)}")
+        logging.info(f"CAP_PROP_FRAME_HEIGHT {self.__camera.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
+        logging.info(f"CAP_PROP_BRIGHTNESS {self.__camera.get(cv2.CAP_PROP_BRIGHTNESS)}")
+        logging.info(f"CAP_PROP_CONTRAST {self.__camera.get(cv2.CAP_PROP_CONTRAST)}")
+        logging.info(f"CAP_PROP_SATURATION {self.__camera.get(cv2.CAP_PROP_SATURATION)}")
 
         logging.info("Camera initialized")
 
