@@ -24,6 +24,7 @@ class ClientService:
         """
 
         # Initialize MQTT client
+        logging.info("ICI ?")
         self.__client.username_pw_set("guest", "zK&hjVQhiPrwAu6F")
         self.__client.tls_set(certfile=None, keyfile=None, cert_reqs=ssl.CERT_NONE, tls_version=ssl.PROTOCOL_TLS)
         self.__client.connect("mqtt.freezlex.dev", 1883)
@@ -50,7 +51,7 @@ class ClientService:
         message = self.__client.publish(self.__topic + endpoint, data)
         message.wait_for_publish(CLIENT_MESSAGE_TIMEOUT)
 
-        logging.info(f"Data sent successfully, topic: {self.__topic + endpoint}")
+        # logging.info(f"Data sent successfully, topic: {self.__topic + endpoint}")
 
     def disconnect(self):
         """

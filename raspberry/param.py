@@ -11,6 +11,10 @@ CAMERA_IMAGE_HEIGHT = 360
 CAMERA_WAIT = 5
 CAMERA_BRIGHTNESS = 80
 
+if hostname == "pi34":
+    CLIENT_ROOM_ID = "7ba2afc9-f184-4d8c-a008-08c16ccb948a"
+if hostname == "pi38":
+    CLIENT_ROOM_ID = "30cfa86e-c02f-4d20-bb3b-205dde5ea367"
 if hostname == "pi39":
     CLIENT_ROOM_ID = "508d660b-7e59-475c-934b-de6aae7cecdc"
     CAMERA_BRIGHTNESS = 30

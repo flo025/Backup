@@ -7,15 +7,16 @@ from client_service import ClientService
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - SENSOR - %(message)s'
 )
 
 
 try:
     arduino = Arduino("/dev/ttyACM0", 1)
-    client_service = ClientService()
+    logging.info('arduino connected')
 
-    logging.info('test')
+    client_service = ClientService()
+    logging.info('client connected')
 
     while True:
         current_time = datetime.datetime.now()

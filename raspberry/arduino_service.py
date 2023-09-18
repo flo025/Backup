@@ -1,3 +1,4 @@
+import logging
 import time
 
 import serial
@@ -25,7 +26,7 @@ class Arduino:
 
         if serial_type == "serial-handshake":
             outcome = f"serial-handshake={data_value}".encode()
-            print(f"Incoming handshake. Validating back [{outcome}]")
+            logging.info(f"Incoming handshake. Validating back [{outcome}]")
             self.serial.write(outcome)
         elif serial_type == "serial-data":
             self.serial.write("serial-data=OK".encode())

@@ -5,7 +5,7 @@ from client_service import ClientService
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - IMAGE - %(message)s'
 )
 
 try:

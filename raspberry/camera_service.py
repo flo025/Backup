@@ -20,11 +20,11 @@ class CameraService:
         self.__camera.set(cv2.CAP_PROP_SATURATION, 100.0)
         self.__camera.set(cv2.CAP_PROP_ZOOM, 0.0)
 
-        logging.info(f"CAP_PROP_FRAME_WIDTH {self.__camera.get(cv2.CAP_PROP_FRAME_WIDTH)}")
-        logging.info(f"CAP_PROP_FRAME_HEIGHT {self.__camera.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
-        logging.info(f"CAP_PROP_BRIGHTNESS {self.__camera.get(cv2.CAP_PROP_BRIGHTNESS)}")
-        logging.info(f"CAP_PROP_CONTRAST {self.__camera.get(cv2.CAP_PROP_CONTRAST)}")
-        logging.info(f"CAP_PROP_SATURATION {self.__camera.get(cv2.CAP_PROP_SATURATION)}")
+        #logging.info(f"CAP_PROP_FRAME_WIDTH {self.__camera.get(cv2.CAP_PROP_FRAME_WIDTH)}")
+        #logging.info(f"CAP_PROP_FRAME_HEIGHT {self.__camera.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
+        #logging.info(f"CAP_PROP_BRIGHTNESS {self.__camera.get(cv2.CAP_PROP_BRIGHTNESS)}")
+        #logging.info(f"CAP_PROP_CONTRAST {self.__camera.get(cv2.CAP_PROP_CONTRAST)}")
+        #logging.info(f"CAP_PROP_SATURATION {self.__camera.get(cv2.CAP_PROP_SATURATION)}")
 
         logging.info("Camera initialized")
 
